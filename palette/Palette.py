@@ -1,5 +1,10 @@
+#--------------------------------------------------------------------------------------------------------------------------
 from flask import Flask,request,render_template
-
+@app.route('/')
+def home():
+    return render_template('index.html')
+app =Flask(__name__)
+#--------------------------------------------------------------------------------------------------------------------------
 
 from math import sqrt
 import random
@@ -8,15 +13,8 @@ try:
 except ImportError:
   from PIL import Image
 
-app =Flask(__name__)
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-
-
-
+  
+  
 class Point:
     
     def __init__(self,coordinates):
@@ -104,7 +102,7 @@ def rgb_to_hex(rgb):
   return '#%s' % ''.join(('%02x' % p for p in rgb))
 
 
-
+#--------------------------------------------------------------------------------------------------------------------------
 
 
 @app.route('/uploader', methods = ['GET', 'POST'])
@@ -136,7 +134,7 @@ def get_colors(filename, n_colors=3):
 if __name__ == '__main__':
     app.run()
 
-
+#--------------------------------------------------------------------------------------------------------------------------
         
         
 
