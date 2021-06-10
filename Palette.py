@@ -6,10 +6,6 @@ except ImportError:
   from PIL import Image
 
 
-
-
-
-
 class Point:
     
     def __init__(self,coordinates):
