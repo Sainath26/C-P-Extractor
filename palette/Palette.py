@@ -1,12 +1,6 @@
-#--------------------------------------------------------------------------------------------------------------------------
-from flask import Flask,request,render_template
-app =Flask(__name__)
-@app.route('/')
-def home():
-    return render_template('index.html')
 
 #--------------------------------------------------------------------------------------------------------------------------
-
+#COLOR EXTRACTION SECTION
 from math import sqrt
 import random
 try:
@@ -103,7 +97,17 @@ def rgb_to_hex(rgb):
   return '#%s' % ''.join(('%02x' % p for p in rgb))
 
 
+
 #--------------------------------------------------------------------------------------------------------------------------
+#FLASK SECTION
+
+
+from flask import Flask,request,render_template
+app =Flask(__name__)
+@app.route('/')
+def home():
+    return render_template('index.html')
+
 
 
 @app.route('/uploader', methods = ['GET', 'POST'])
@@ -136,9 +140,3 @@ if __name__ == '__main__':
     app.run()
 
 #--------------------------------------------------------------------------------------------------------------------------
-        
-        
-
-
-        
-
