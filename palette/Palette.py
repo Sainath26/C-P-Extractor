@@ -1,142 +1,27 @@
 
 #--------------------------------------------------------------------------------------------------------------------------
 #COLOR EXTRACTION SECTION
-from math import sqrt
-import random
-try:
-  import Image
-except ImportError:
-  from PIL import Image
-
-  
-  
-class Point:
-    
-    def __init__(self,coordinates):
-        self.coordinates = coordinates
-        
-class Cluster:
-    def __init__(self,center,points):
-        self.center = center
-        self.points = points
-        
-class KMeans:
-    def __init__(self,n_clusters,min_diff=1):
-        self.n_clusters = n_clusters
-        self.min_diff = min_diff
-        
-    def calculate_center(self, points):    
-        n_dim = len(points[0].coordinates)    
-        vals = [0.0 for i in range(n_dim)]    
-        for p in points:
-            for i in range(n_dim):
-                vals[i] += p.coordinates[i]
-        coords = [(v / len(points)) for v in vals]    
-        return Point(coords)
-  
-    def assign_points(self, clusters, points):
-        plists = [[] for i in range(self.n_clusters)]
-
-        for p in points:
-            smallest_distance = float('inf')
-
-        for i in range(self.n_clusters):
-            distance = euclidean(p, clusters[i].center)
-            if distance < smallest_distance:
-                smallest_distance = distance
-            idx = i
-
-        plists[idx].append(p)
-        
-        return plists
-        
-    def fit(self, points):
-        clusters = [Cluster(center=p, points=[p]) for p in random.sample(points, self.n_clusters)]
-        
-        while True:
-
-            plists = self.assign_points(clusters, points)
-
-            diff = 0
-
-            for i in range(self.n_clusters):
-                if not plists[i]:
-                    continue
-            old = clusters[i]
-            center = self.calculate_center(plists[i])
-            new = Cluster(center, plists[i])
-            clusters[i] = new
-            diff = max(diff, euclidean(old.center, new.center))
-
-            if diff < self.min_diff:
-                break
-
-            
-        return clusters
-
-def euclidean(p, q):
-  n_dim = len(p.coordinates)
-  return sqrt(sum([
-      (p.coordinates[i] - q.coordinates[i]) ** 2 for i in range(n_dim)
-  ]))
-
-def get_points(image_path):  
-  img = Image.open(image_path)
-  img.thumbnail((200, 400))
-  img = img.convert("RGB")
-  w, h = img.size
-  
-  points = []
-  for count, color in img.getcolors(w * h):
-    for _ in range(count):
-      points.append(Point(color))
-    
-  return points
-
-def rgb_to_hex(rgb):
-  return '#%s' % ''.join(('%02x' % p for p in rgb))
-
-
+from scipy.cluster.vq import kmeans
+import pandas as pd
+from scipy.cluster.vq import whiten
+from matplotlib import pyplot as plt
+from matplotlib import image as img
+image = img.imread('./image8.jpg')
+#construct to a dataframe for future data process
+df = pd.DataFrame()
+df['r']=pd.Series(image[:,:,0].flatten())
+df['g']=pd.Series(image[:,:,1].flatten())
+df['b']=pd.Series(image[:,:,2].flatten())
+df['r_whiten'] = whiten(df['r'])
+df['g_whiten'] = whiten(df['g'])
+df['b_whiten'] = whiten(df['b'])
+cluster_centers, distortion = kmeans(df[['r_whiten', 'g_whiten', 'b_whiten']], 5)
+r_std, g_std, b_std = df[['r', 'g', 'b']].std()
+colors=[]
+for color in cluster_centers:
+    sr, sg, sb = color
+    colors.append((int(sr*r_std), int(sg*g_std), int(sb*b_std)))
 
 #--------------------------------------------------------------------------------------------------------------------------
-#FLASK SECTION
-
-
-from flask import Flask,request,render_template
-app =Flask(__name__)
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-
-
-@app.route('/uploader', methods = ['GET', 'POST'])
-def upload_file():
-   if request.method == 'POST':
-      f = request.files['file']
-      f.save(f.filename)
-      
-      return 'file uploaded successfully'
-
-
-
-@app.route('/get_colors',methods=['POST'])
-def get_colors(filename, n_colors=3):
-  points = get_points(filename)
-  clusters = KMeans(n_clusters=n_colors).fit(points)
-  clusters.sort(key=lambda c: len(c.points), reverse = True)
-  rgbs = [map(int, c.center.coordinates) for c in clusters]
-  print(list(map(rgb_to_hex, rgbs)))
-  return list(map(rgb_to_hex, rgbs))
-
-
-#colors = get_colors(r'C:\Users\haris\OneDrive\Desktop\a.jpg', n_colors=7)
-#", ".join(colors)
-
-
-
-
-if __name__ == '__main__':
-    app.run()
-
-#--------------------------------------------------------------------------------------------------------------------------
+plt.imshow([colors])
+plt.show()
